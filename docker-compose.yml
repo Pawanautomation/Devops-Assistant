@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: devops_assistant_postgres
+    image: postgres:15-alpine
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devops_assistant_pwd_2024
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devops_assistant_network
+
+  studio:
+    container_name: devops_assistant_studio
+    image: supabase/studio:latest
+    ports:
+      - "54323:3000"
+    environment:
+      SUPABASE_URL: http://localhost:54321
+      STUDIO_PG_META_URL: http://localhost:8080
+      POSTGRES_PASSWORD: devops_assistant_pwd_2024
+      SUPABASE_ANON_KEY: your-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: your-service-role-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - devops_assistant_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  devops_assistant_network:
+    name: devops_assistant_network
+
+volumes:
+  postgres_data:

@@ -1,0 +1,18 @@
+data_dir: "/var/lib/vector"
+
+api:
+  enabled: true
+  address: "0.0.0.0:9001"
+
+sources:
+  docker_host:
+    type: "docker_logs"
+    docker_host: "tcp://127.0.0.1:2375"  # Changed to localhost
+    include_containers: ["*"]
+
+sinks:
+  console:
+    type: "console"
+    inputs: ["docker_host"]
+    encoding:
+      codec: "json"
